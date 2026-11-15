@@ -42,6 +42,10 @@ export function isEqualFieldValue<T extends FieldUpdateValue>(a: T, b: T) {
   return isEqual(a, b)
 }
 
+/**
+ * A hidden field has no value. A filled field that becomes hidden is cleared,
+ * so it counts as a change. The history then keeps its previous value.
+ */
 export function hasFieldChanged(
   f: FieldConfig,
   form: EventState,
@@ -49,9 +53,14 @@ export function hasFieldChanged(
   context: ValidatorContext
 ) {
   const isVisible = isFieldVisible(f, form, context)
+  const wasVisible = isFieldVisible(f, previousFormValues, context)
 
-  const prevValue = previousFormValues[f.id]
-  const currValue = form[f.id]
+  if (!isVisible && !wasVisible) {
+    return false
+  }
+
+  const prevValue = wasVisible ? previousFormValues[f.id] : undefined
+  const currValue = isVisible ? form[f.id] : undefined
 
   // Ensure that if previous value is 'undefined' and current value is 'null'
   // it doesn't get detected as a value change
@@ -60,7 +69,7 @@ export function hasFieldChanged(
     !isEqualFieldValue(deepDropNulls(prevValue), deepDropNulls(currValue)) &&
     !bothNil
 
-  return isVisible && valueHasChanged
+  return valueHasChanged
 }
 
 export function hasDeclarationFieldChanged(

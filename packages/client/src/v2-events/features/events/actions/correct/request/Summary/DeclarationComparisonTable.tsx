@@ -206,8 +206,19 @@ function DeclarationComparisonTableComponent({
                 (typeToHide) => type === typeToHide
               )
           )
-          .filter((field) =>
-            isFieldDisplayedOnReview(field, latestDeclaration, validatorContext)
+          // A field that the change hides is still shown, so the table keeps its previous value.
+          .filter(
+            (field) =>
+              isFieldDisplayedOnReview(
+                field,
+                latestDeclaration,
+                validatorContext
+              ) ||
+              isFieldDisplayedOnReview(
+                field,
+                previousDeclaration,
+                validatorContext
+              )
           )
           .filter((f) =>
             hasFieldChanged(
@@ -236,7 +247,8 @@ function DeclarationComparisonTableComponent({
                 anchor={anchor}
                 eventConfig={eventConfig}
                 field={f}
-                value={latestDeclaration[f.id]}
+                // A removed value is `null`. Show it as a dash, like an empty value.
+                value={latestDeclaration[f.id] ?? undefined}
               />
             )
 
