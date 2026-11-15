@@ -340,3 +340,66 @@ export const CleanedUpCorrectionPayload: Story = {
     })
   }
 }
+
+/** The draft hides `recommender.dob`, which the registered record has a value for. */
+function storyParametersAt(initialPath: string) {
+  const parameters = CleanedUpCorrectionPayload.parameters ?? {}
+  return {
+    ...parameters,
+    reactRouter: { ...parameters.reactRouter, initialPath }
+  }
+}
+
+export const HiddenFieldKeepsPreviousValueInSummary: Story = {
+  beforeEach: CleanedUpCorrectionPayload.beforeEach,
+  loaders: CleanedUpCorrectionPayload.loaders,
+  parameters: storyParametersAt(
+    ROUTES.V2.EVENTS.REQUEST_CORRECTION.SUMMARY.buildPath({
+      eventId: overriddenEvent.id
+    })
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await waitFor(async () =>
+      expect(
+        canvas.getByRole('button', { name: 'Submit correction request' })
+      ).toBeVisible()
+    )
+
+    const table = canvasElement.querySelector<HTMLElement>(
+      '#listTable-corrections-table-recommender'
+    )
+    await expect(table).not.toBeNull()
+    if (!table) {
+      return
+    }
+
+    // The correction hides the date of birth. The table must still show its previous value.
+    const dobRow = within(table).getByText('Date of birth').parentElement
+    await expect(dobRow).not.toBeNull()
+    if (!dobRow) {
+      return
+    }
+    await expect(within(dobRow).getByText('12 May 1978')).toBeVisible()
+    await expect(within(dobRow).getByText('-')).toBeVisible()
+    await expect(within(table).getByText('Age of recommender')).toBeVisible()
+  }
+}
+
+export const HiddenFieldShowsAsClearedOnReview: Story = {
+  beforeEach: CleanedUpCorrectionPayload.beforeEach,
+  loaders: CleanedUpCorrectionPayload.loaders,
+  parameters: storyParametersAt(
+    ROUTES.V2.EVENTS.REQUEST_CORRECTION.REVIEW.buildPath({
+      eventId: overriddenEvent.id
+    })
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // The correction hides the date of birth. The review must still show that it is removed.
+    await expect(await canvas.findByText('Date of birth')).toBeVisible()
+    await expect(canvas.getByText('Age of recommender')).toBeVisible()
+  }
+}

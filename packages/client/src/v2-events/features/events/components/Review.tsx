@@ -53,6 +53,7 @@ import { withSuspense } from '@client/v2-events/components/withSuspense'
 import { buttonMessages } from '@client/i18n/messages'
 import { useValidatorContext } from '@client/v2-events/hooks/useValidatorContext'
 import { useDialogFormState } from '@client/v2-events/hooks/useDialogFormState'
+import { isDeeplyEmpty } from '@client/v2-events/features/events/useEvents/procedures/actions/declarationDiff'
 import { Output } from './Output'
 import { DocumentViewer } from './DocumentViewer'
 import { TranslationTextWithFormatModifier } from './TranslationTextWithFormatModifier'
@@ -213,6 +214,21 @@ function ReviewHeader({ title }: { title: string }) {
 /**
  *  Renders review of form data, with the ability to edit the data.
  */
+/**
+ * A change can hide a filled field. The field then shows as cleared, so that
+ * the reviewer sees that its previous value will be removed.
+ */
+function wasFilledAndDisplayed(
+  field: FieldConfig,
+  previousForm: EventState,
+  validatorContext: ValidatorContext
+) {
+  return (
+    !isDeeplyEmpty(previousForm[field.id]) &&
+    isFieldDisplayedOnReview(field, previousForm, validatorContext)
+  )
+}
+
 function FormReview({
   formConfig,
   form,
@@ -250,8 +266,11 @@ function FormReview({
       <ReviewContainter>
         {visiblePages.map((page) => {
           const fields = page.fields
-            .filter((field) =>
-              isFieldDisplayedOnReview(field, form, validatorContext)
+            .filter(
+              (field) =>
+                isFieldDisplayedOnReview(field, form, validatorContext) ||
+                (treatMissingValuesAsCleared &&
+                  wasFilledAndDisplayed(field, previousForm, validatorContext))
             )
             .map((field) => {
               const value = form[field.id]
