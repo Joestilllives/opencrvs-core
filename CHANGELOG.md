@@ -409,6 +409,7 @@ Date rules could only compare with today, so a record declared on time became la
 
 ### Bug fixes
 
+- Keep the previous value of a field that a correction or a record update hides. For example, "Exact date of birth unknown" hides the date of birth. Before, the review page, the correction summary and the audit history did not show the hidden field, so its previous value was lost from these views. Now they show the previous value and the removed value [#14064](https://github.com/opencrvs/opencrvs-core/issues/14064)
 - The loading screens of the client now show the country logo from `COUNTRY_LOGO` in the application config. Before, they always showed the OpenCRVS logo. The client gets the logo from the `/content/country-logo` endpoint of the country config. [#14180](https://github.com/opencrvs/opencrvs-core/issues/14180)
 - Keep a 24px gutter beside a `Content` card at every width, so the workqueue and other card pages no longer sit flush against the side navigation and the browser window on screens narrower than the card's maximum [#13391](https://github.com/opencrvs/opencrvs-core/issues/13391)
 - Show images from the declaration and from the print form on the certificate preview. Files from `FILE` and `FILE_WITH_OPTIONS` fields reached the certificate as relative paths, so the browser did not find them in its cache and showed a broken image [#14187](https://github.com/opencrvs/opencrvs-core/issues/14187)
